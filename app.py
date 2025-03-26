@@ -37,6 +37,42 @@ line_style = """
 """
 st.markdown(line_style, unsafe_allow_html=True)
 
+# ПЕРЕМЕЩАЕМ НАСТРОЙКИ НАВЕРХ перед использованием переменных
+# Добавление боковой панели для настроек
+st.sidebar.header("Настройки генерации")
+
+# Slider для выбора температуры
+temperature = st.sidebar.slider(
+    "Температура", 
+    min_value=0.0, 
+    max_value=2.0, 
+    value=0.5, 
+    step=0.1,
+    help="Более высокая температура делает ответы более креативными, низкая - более детерминированными"
+)
+
+# Slider для выбора максимального числа токенов
+max_tokens = st.sidebar.slider(
+    "Максимальное число токенов", 
+    min_value=100, 
+    max_value=8000, 
+    value=4000, 
+    step=100,
+    help="Ограничивает длину ответа модели"
+)
+
+# Кнопка для очистки чата
+if st.sidebar.button("Очистить историю чата"):
+    st.session_state.messages = []
+    st.rerun()
+
+# Примечание о текущих настройках генерации
+st.sidebar.info(f"""
+**Текущие настройки:**
+- Температура: {temperature}
+- Максимум токенов: {max_tokens}
+""")
+
 # Отображение истории сообщений
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -55,8 +91,8 @@ if prompt := st.chat_input("Введите ваше сообщение:"):
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=st.session_state.messages,
-            temperature=0.5,
-            max_tokens=4000,
+            temperature=temperature,  # Используем переменную из sidebar
+            max_tokens=max_tokens,    # Используем переменную из sidebar
         )
         assistant_reply = response.choices[0].message.content
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
